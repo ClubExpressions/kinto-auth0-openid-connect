@@ -12,7 +12,7 @@ def get_config_value(request, key):
   return value
 
 def handle_error(error, status_code):
-#  logger.debug(error)
+  logger.debug(error)
   return None
 
 @implementer(IAuthenticationPolicy)
@@ -65,7 +65,7 @@ class Auth0OIDCAuthenticationPolicy(CallbackAuthenticationPolicy):
                     token,
                     rsa_key,
                     algorithms=algorithm,
-#                    audience=get_config_value(request, "audience"),
+#                   audience=get_config_value(request, "audience"),
 #                   Bug: why audience is set to clientId ??
                     audience=get_config_value(request, "client_id"),
                     issuer="https://" + auth_domain + "/"
