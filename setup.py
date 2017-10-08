@@ -1,5 +1,14 @@
 import setuptools
 
+REQUIREMENTS = [
+    'kinto >= 5.0',
+    'pyramid',
+    'python_jose',
+    'requests',
+]
+
+DEPENDENCY_LINKS = []
+
 setuptools.setup(
     name="kinto-auth0-openid-connect",
     version="0.1.0",
@@ -13,7 +22,9 @@ setuptools.setup(
 
     packages=setuptools.find_packages(),
 
-    install_requires=[],
+    install_requires=REQUIREMENTS,
+
+    dependency_links=DEPENDENCY_LINKS,
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
