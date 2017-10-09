@@ -1,6 +1,7 @@
-import requests
 import json
+import requests
 from kinto.core import logger
+from pyramid import httpexceptions
 from pyramid.authentication import CallbackAuthenticationPolicy
 from pyramid.interfaces import IAuthenticationPolicy
 from zope.interface import implementer
@@ -12,8 +13,8 @@ def get_config_value(request, key):
   return value
 
 def handle_error(error, status_code):
-  logger.debug(error)
-  return None
+#  logger.debug(error)
+  raise httpexceptions.exception_response(status_code)
 
 @implementer(IAuthenticationPolicy)
 class Auth0OIDCAuthenticationPolicy(CallbackAuthenticationPolicy):
@@ -40,9 +41,13 @@ class Auth0OIDCAuthenticationPolicy(CallbackAuthenticationPolicy):
             authmeth, token = authorization.split(' ', 1)
             authmeth = authmeth.lower()
         except ValueError:
-            return None
+            return handle_error({"code": "invalid_header",
+                                     "description": "Unable to parse authentication"
+                                                    "token."}, 400)
         if authmeth != auth_method.lower():
-            return None
+            return handle_error({"code": "invalid_header",
+                                     "description": "Unable to parse authentication"
+                                                    "token."}, 400)
 
         jwks_resp = requests.get("https://" + auth_domain + "/.well-known/jwks.json")
         jwks = jwks_resp.json()
