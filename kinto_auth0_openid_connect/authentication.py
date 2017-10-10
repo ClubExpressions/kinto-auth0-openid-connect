@@ -1,4 +1,3 @@
-import json
 import requests
 from kinto.core import logger
 from pyramid import httpexceptions
@@ -8,13 +7,13 @@ from zope.interface import implementer
 from jose import jwt
 
 def get_config_value(request, key):
-  value = request.registry.settings["auth0." + key]
-#  logger.debug("auth0." + key + ": " + value)
-  return value
+    value = request.registry.settings["auth0." + key]
+#    logger.debug("auth0." + key + ": " + value)
+    return value
 
 def handle_error(error, status_code):
-#  logger.debug(error)
-  raise httpexceptions.exception_response(status_code)
+#    logger.debug(error)
+    raise httpexceptions.exception_response(status_code)
 
 @implementer(IAuthenticationPolicy)
 class Auth0OIDCAuthenticationPolicy(CallbackAuthenticationPolicy):
@@ -43,12 +42,12 @@ class Auth0OIDCAuthenticationPolicy(CallbackAuthenticationPolicy):
             authmeth = authmeth.lower()
         except ValueError:
             return handle_error({"code": "invalid_header",
-                                     "description": "Unable to parse authentication"
-                                                    "token."}, 400)
+                                 "description": "Unable to parse authentication"
+                                                "token."}, 400)
         if authmeth != auth_method.lower():
             return handle_error({"code": "invalid_header",
-                                     "description": "Unable to parse authentication"
-                                                    "token."}, 400)
+                                 "description": "Unable to parse authentication"
+                                                "token."}, 400)
 
         (rsa_key, algorithm) = self._get_crypto_data(request, auth_domain, token)
         if rsa_key:
@@ -79,40 +78,40 @@ class Auth0OIDCAuthenticationPolicy(CallbackAuthenticationPolicy):
                              "description": "Unable to find appropriate key"}, 400)
 
     def _get_cache(self, request):
-      """Instantiate cache when first request comes in.
-      """
-      if self._cache is None:
-        if hasattr(request.registry, 'cache'):
-          self._cache = request.registry.cache
+        """Instantiate cache when first request comes in.
+        """
+        if self._cache is None:
+            if hasattr(request.registry, 'cache'):
+                self._cache = request.registry.cache
 
-      return self._cache
+        return self._cache
 
     def _get_crypto_data(self, request, auth_domain, token):
 
-      cache = self._get_cache(request)
+        cache = self._get_cache(request)
 
-      unverified_header = jwt.get_unverified_header(token)
-      unverified_kid = unverified_header["kid"]
+        unverified_header = jwt.get_unverified_header(token)
+        unverified_kid = unverified_header["kid"]
 
-      resp = cache.get(unverified_kid)
+        resp = cache.get(unverified_kid)
 
-      if resp is None:
-        jwks_resp = requests.get("https://" + auth_domain + "/.well-known/jwks.json")
-        jwks = jwks_resp.json()
-        rsa_key = {}
-        algorithm = None
+        if resp is None:
+            jwks_resp = requests.get("https://" + auth_domain + "/.well-known/jwks.json")
+            jwks = jwks_resp.json()
+            rsa_key = {}
+            algorithm = None
 
-        for key in jwks["keys"]:
-          if key["kid"] == unverified_kid:
-            rsa_key = {
-              "kty": key["kty"],
-              "kid": key["kid"],
-              "use": key["use"],
-              "n": key["n"],
-              "e": key["e"]
-            }
-            algorithm = key["alg"]
-        resp = (rsa_key, algorithm)
-        cache.set(unverified_kid, resp, 43200)
+            for key in jwks["keys"]:
+                if key["kid"] == unverified_kid:
+                    rsa_key = {
+                        "kty": key["kty"],
+                        "kid": key["kid"],
+                        "use": key["use"],
+                        "n": key["n"],
+                        "e": key["e"]
+                    }
+                    algorithm = key["alg"]
+                    resp = (rsa_key, algorithm)
+                    cache.set(unverified_kid, resp, 43200)
 
-      return resp
+        return resp
