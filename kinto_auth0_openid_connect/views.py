@@ -4,7 +4,9 @@ from pyramid.httpexceptions import HTTPFound
 from urllib import parse
 
 def get_config_value(request, key):
-  return request.registry.settings["auth0." + key]
+    value = request.registry.settings["auth0." + key]
+#    logger.debug("auth0." + key + ": " + value)
+    return value
 
 auth0_authorization = Service(name="auth0_authorization",
                  path='/auth/auth0',
